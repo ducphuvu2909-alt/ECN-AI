@@ -61,48 +61,33 @@
     </div>
   </div>
 
-  <script src="auth.js"></script>
-  <script>
-    (async function init(){
-      const me = await auth.me();
-      if(me){ onAuthed(me); }
-    })();
+<script>
+function onAuthed(me){
+  // Ẩn hoàn toàn panel login (tránh display bị CSS nào đó override)
+  const lp = document.getElementById('loginPane');
+  lp.classList.add('hidden');
+  lp.style.display = 'none';
+  lp.style.width = '0';
+  lp.style.padding = '0';
+  lp.style.border = '0';
 
-    function onAuthed(me){
-      document.getElementById('loginPane').classList.add('hidden');
-      document.getElementById('appFrame').classList.remove('hidden');
-      const up = document.getElementById('userpill');
-      up.textContent = me.name + ' • ' + me.dept + ' • ' + me.role;
-      up.classList.remove('hidden');
-      document.getElementById('btnLogout').classList.remove('hidden');
-    }
+  // Cập nhật thông tin user
+  const up = document.getElementById('userpill');
+  up.textContent = me.name + ' • ' + me.dept + ' • ' + me.role;
+  up.classList.remove('hidden');
+  document.getElementById('btnLogout').classList.remove('hidden');
 
-    document.getElementById('btnLogin').addEventListener('click', async ()=>{
-      const u = document.getElementById('loginUser').value.trim();
-      const p = document.getElementById('loginPass').value;
-      const d = document.getElementById('loginDept').value.trim();
-      const msg = document.getElementById('loginMsg');
-      msg.textContent = 'Đang đăng nhập...';
-      msg.className = 'note';
+  // Ép reload ECN để nhận token mới (cache-busting)
+  const f = document.getElementById('appFrame');
+  f.classList.remove('hidden');
+  // nếu đã có src, đổi thành ecn.html?ts=<now> để chắc chắn nạp lại
+  f.src = 'ecn.html?ts=' + Date.now();
 
-      try{
-        const res = await auth.login(u,p,d || null);
-        if(res && res.user){
-          msg.textContent = 'Đăng nhập thành công.';
-          msg.className = 'note ok';
-          onAuthed(res.user);
-        }else{
-          throw new Error('Sai thông tin đăng nhập');
-        }
-      }catch(e){
-        msg.textContent = 'Đăng nhập thất bại: ' + (e.message || 'Lỗi máy chủ');
-        msg.className = 'note err';
-      }
-    });
-
-    document.getElementById('btnLogout').addEventListener('click', ()=>{
-      auth.logout(); location.reload();
-    });
-  </script>
+  // optional: thêm listener để báo lỗi nếu iframe không tải được
+  f.addEventListener('load', () => {
+    // console.log('ECN loaded');
+  });
+}
+</script>
 </body>
 </html>
