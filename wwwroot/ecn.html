@@ -3,7 +3,7 @@
 <html lang="en">
 <head><script>
 (async function(){
-  const isEmbedded = (window.top !== window.self);
+  const isTop = (window.top === window.self); // mở trực tiếp tab hay không
 
   async function me(){
     const t = localStorage.getItem('ecn_jwt');
@@ -13,7 +13,7 @@
     const u = await r.json();
     window.ECN_CURRENT_USER = u;
 
-    // Ép bộ phận nếu không phải Admin
+    // Ví dụ: ép Department nếu không phải Admin
     try{
       const sel = document.getElementById('dDept') || document.getElementById('fDept');
       if(sel && u.role !== 'Admin'){ sel.value = u.dept; sel.disabled = true; }
@@ -21,16 +21,14 @@
   }
 
   try{
-    await me();
+    await me(); // OK -> cho hiển thị UI bình thường
   }catch(e){
-    // Nếu người dùng mở trực tiếp ecn.html mới alert + redirect
-    if(!isEmbedded){
-      alert('Vui lòng đăng nhập từ trang index.html trước khi vào hệ thống ECN.');
-      window.location.href = 'index.html';
+    if (isTop){
+      // Chỉ khi người dùng mở trực tiếp ecn.html mới chuyển về index
+      window.location.replace('index.html?redirect=1');
     } else {
-      // Nhúng trong iframe: im lặng, để index.html xử lý
-      // (Không alert, không redirect để tránh lặp)
-      document.body.innerHTML = ''; // tránh lộ UI khi chưa login
+      // Nếu nhúng (không còn dùng), im lặng để tránh popup lặp
+      document.body.innerHTML = '';
     }
   }
 })();
