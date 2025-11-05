@@ -63,7 +63,7 @@
 
 <script>
 function onAuthed(me){
-  // Ẩn hoàn toàn panel login (tránh display bị CSS nào đó override)
+  // Ẩn panel login hoàn toàn
   const lp = document.getElementById('loginPane');
   lp.classList.add('hidden');
   lp.style.display = 'none';
@@ -71,22 +71,16 @@ function onAuthed(me){
   lp.style.padding = '0';
   lp.style.border = '0';
 
-  // Cập nhật thông tin user
+  // Hiển thị user + nút logout
   const up = document.getElementById('userpill');
   up.textContent = me.name + ' • ' + me.dept + ' • ' + me.role;
   up.classList.remove('hidden');
   document.getElementById('btnLogout').classList.remove('hidden');
 
-  // Ép reload ECN để nhận token mới (cache-busting)
+  // Nạp ECN SAU KHI có token (cache-busting để chắc chắn reload)
   const f = document.getElementById('appFrame');
   f.classList.remove('hidden');
-  // nếu đã có src, đổi thành ecn.html?ts=<now> để chắc chắn nạp lại
-  f.src = 'ecn.html?ts=' + Date.now();
-
-  // optional: thêm listener để báo lỗi nếu iframe không tải được
-  f.addEventListener('load', () => {
-    // console.log('ECN loaded');
-  });
+  f.src = 'ecn.html?ts=' + Date.now();   // ép reload sau login
 }
 </script>
 </body>
