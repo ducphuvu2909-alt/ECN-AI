@@ -1,0 +1,34 @@
+[
+  {
+    "Id": "U004",
+    "Name": "Bao Pham",
+    "Email": "bao.pham@company.com",
+    "Dept": "QC",
+    "Role": "Admin",
+    "PasswordHash": "$2b$12$zA.0b1QyGznqPKISAXQSlutyhRQPmjLcBA8IJjY/VbpQX0NtXcuUu"
+  },
+  {
+    "Id": "U001",
+    "Name": "Minh Nguyen",
+    "Email": "minh.nguyen@company.com",
+    "Dept": "SMT",
+    "Role": "Editor",
+    "PasswordHash": "$2b$12$2FN.qGzkYrg1hKA0xn7j8.7teYlnLmzpCCXQxf1PP/7T5Lvx5.rzm"
+  },
+  {
+    "Id": "U002",
+    "Name": "Lan Tran",
+    "Email": "lan.tran@company.com",
+    "Dept": "PE",
+    "Role": "Approver",
+    "PasswordHash": "$2b$12$r4qehRl.8QdKOYhQsRi91u8WBEtz2SKrZIwyOHe.kbQ9HlX2XniXO"
+  },
+  {
+    "Id": "U003",
+    "Name": "Quang Le",
+    "Email": "quang.le@company.com",
+    "Dept": "FE",
+    "Role": "Viewer",
+    "PasswordHash": "$2b$12$MR0RRX4n9mGAg5LCW1MXV.s4ajZICOrzMKkC9cpmJlm4KcGA4ihry"
+  }
+]
