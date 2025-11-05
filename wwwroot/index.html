@@ -2,6 +2,9 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ECN Manager — Login & System</title>
   <style>
@@ -58,47 +61,50 @@
 
   </div>
 
-<script src="auth.js"></script>
+<script src="auth.js" defer></script>
 <script>
-  // Nếu đã có token thì vào thẳng hệ thống
-  (async () => {
+  // chờ auth.js sẵn sàng
+  window.addEventListener('DOMContentLoaded', async () => {
+    // Nếu đã có token -> vào thẳng ECN
     try {
       const me = await auth.me();
       if (me) {
-        window.location.replace('ecn.html?ts=' + Date.now()); // chuyển hẳn trang
+        location.replace('ecn.html#autologin&ts=' + Date.now());
         return;
       }
     } catch(e){}
-  })();
 
-  // Xử lý đăng nhập
-  document.getElementById('btnLogin').addEventListener('click', async () => {
-    const u = document.getElementById('loginUser').value.trim();
-    const p = document.getElementById('loginPass').value;
-    const d = (document.getElementById('loginDept')?.value || '').trim();
+    // Xử lý login
+    const btn = document.getElementById('btnLogin');
     const msg = document.getElementById('loginMsg');
-    msg.textContent = 'Đang đăng nhập...';
-    msg.className = 'note';
+    btn?.addEventListener('click', async () => {
+      const u = document.getElementById('loginUser').value.trim();
+      const p = document.getElementById('loginPass').value;
+      const d = (document.getElementById('loginDept')?.value || '').trim();
 
-    try{
-      const res = await auth.login(u, p, d || null);
-      if (res && res.user){
-        // Đăng nhập xong -> chuyển sang ecn.html (cache-busting đảm bảo nạp mới)
-        window.location.replace('ecn.html?ts=' + Date.now());
-      } else {
-        throw new Error('Sai thông tin đăng nhập');
+      msg.textContent = 'Đang đăng nhập...';
+      msg.className = 'note';
+
+      try {
+        const res = await auth.login(u, p, d || null);      // setToken()
+        // XÁC THỰC LẠI để chắc chắn token dùng được trước khi điều hướng
+        const me = await auth.me();
+        if (!me) throw new Error('Token chưa sẵn sàng');
+
+        // Chuyển thẳng sang ECN (kèm ts để tránh cache)
+        location.replace('ecn.html#afterlogin&ts=' + Date.now());
+      } catch (e) {
+        msg.textContent = 'Đăng nhập thất bại: ' + (e.message || 'Lỗi máy chủ');
+        msg.className = 'note err';
       }
-    }catch(e){
-      msg.textContent = 'Đăng nhập thất bại: ' + (e.message || 'Lỗi máy chủ');
-      msg.className = 'note err';
-    }
-  });
+    });
 
-  // Nút Đăng xuất (nếu có trên header)
-  const btnLogout = document.getElementById('btnLogout');
-  if (btnLogout){
-    btnLogout.addEventListener('click', () => { auth.logout(); location.reload(); });
-  }
+    // Nút logout (nếu có)
+    document.getElementById('btnLogout')?.addEventListener('click', () => {
+      auth.logout();
+      location.reload();
+    });
+  });
 </script>
 </body>
 </html>
