@@ -3,21 +3,35 @@
 <html lang="en">
 <head><script>
 (async function(){
+  const isEmbedded = (window.top !== window.self);
+
   async function me(){
     const t = localStorage.getItem('ecn_jwt');
-    if(!t){ throw new Error('no-token'); }
+    if(!t) throw new Error('no-token');
     const r = await fetch('api/me', { headers: { 'Authorization': 'Bearer ' + t }});
     if(!r.ok) throw new Error('unauthorized');
     const u = await r.json();
     window.ECN_CURRENT_USER = u;
+
+    // Ép bộ phận nếu không phải Admin
     try{
       const sel = document.getElementById('dDept') || document.getElementById('fDept');
       if(sel && u.role !== 'Admin'){ sel.value = u.dept; sel.disabled = true; }
     }catch(e){}
   }
-  try{ await me(); }catch(e){
-    alert('Vui lòng đăng nhập từ trang index.html trước khi vào hệ thống ECN.');
-    window.location.href = 'index.html';
+
+  try{
+    await me();
+  }catch(e){
+    // Nếu người dùng mở trực tiếp ecn.html mới alert + redirect
+    if(!isEmbedded){
+      alert('Vui lòng đăng nhập từ trang index.html trước khi vào hệ thống ECN.');
+      window.location.href = 'index.html';
+    } else {
+      // Nhúng trong iframe: im lặng, để index.html xử lý
+      // (Không alert, không redirect để tránh lặp)
+      document.body.innerHTML = ''; // tránh lộ UI khi chưa login
+    }
   }
 })();
 </script>
