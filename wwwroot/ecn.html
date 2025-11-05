@@ -3,32 +3,55 @@
 <html lang="en">
 <head><script>
 (async function(){
-  const isTop = (window.top === window.self); // mở trực tiếp tab hay không
+  const isTopWindow = (window.top === window.self);
 
-  async function me(){
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function waitForToken(maxMs = 3000){
+    const start = Date.now();
+    while (Date.now() - start < maxMs){
+      const t = localStorage.getItem('ecn_jwt');
+      if (t) return t;
+      await sleep(100);
+    }
+    return null;
+  }
+
+  async function getMe(){
     const t = localStorage.getItem('ecn_jwt');
     if(!t) throw new Error('no-token');
-    const r = await fetch('api/me', { headers: { 'Authorization': 'Bearer ' + t }});
+    const r = await fetch('api/me', { headers:{ 'Authorization': 'Bearer ' + t } });
     if(!r.ok) throw new Error('unauthorized');
-    const u = await r.json();
-    window.ECN_CURRENT_USER = u;
-
-    // Ví dụ: ép Department nếu không phải Admin
-    try{
-      const sel = document.getElementById('dDept') || document.getElementById('fDept');
-      if(sel && u.role !== 'Admin'){ sel.value = u.dept; sel.disabled = true; }
-    }catch(e){}
+    return await r.json();
   }
 
   try{
-    await me(); // OK -> cho hiển thị UI bình thường
+    let me;
+    try {
+      me = await getMe();
+    } catch (e) {
+      // Có thể token vừa được set, đợi 1 chút rồi thử lại
+      const tok = await waitForToken(3000);
+      if (!tok) throw e;
+      me = await getMe();
+    }
+
+    // Lưu user cho UI ECN dùng
+    window.ECN_CURRENT_USER = me;
+
+    // Ví dụ ép Department nếu không phải Admin
+    try{
+      const sel = document.getElementById('dDept') || document.getElementById('fDept');
+      if (sel && me.role !== 'Admin'){ sel.value = me.dept; sel.disabled = true; }
+    }catch(e){}
+
   }catch(e){
-    if (isTop){
-      // Chỉ khi người dùng mở trực tiếp ecn.html mới chuyển về index
-      window.location.replace('index.html?redirect=1');
+    // Không popup để tránh lặp; chỉ redirect nhẹ nếu mở trực tiếp
+    if (isTopWindow){
+      location.replace('index.html?from=ecn&ts=' + Date.now());
     } else {
-      // Nếu nhúng (không còn dùng), im lặng để tránh popup lặp
-      document.body.innerHTML = '';
+      // nếu bị nhúng (không dùng nữa), ẩn nội dung
+      document.documentElement.innerHTML = '';
     }
   }
 })();
