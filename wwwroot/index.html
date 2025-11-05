@@ -56,32 +56,49 @@
       </div>
     </div>
 
-    <div class="right">
-      <iframe id="appFrame" class="hidden"></iframe>
-    </div>
   </div>
 
+<script src="auth.js"></script>
 <script>
-function onAuthed(me){
-  // Ẩn panel login hoàn toàn
-  const lp = document.getElementById('loginPane');
-  lp.classList.add('hidden');
-  lp.style.display = 'none';
-  lp.style.width = '0';
-  lp.style.padding = '0';
-  lp.style.border = '0';
+  // Nếu đã có token thì vào thẳng hệ thống
+  (async () => {
+    try {
+      const me = await auth.me();
+      if (me) {
+        window.location.replace('ecn.html?ts=' + Date.now()); // chuyển hẳn trang
+        return;
+      }
+    } catch(e){}
+  })();
 
-  // Hiển thị user + nút logout
-  const up = document.getElementById('userpill');
-  up.textContent = me.name + ' • ' + me.dept + ' • ' + me.role;
-  up.classList.remove('hidden');
-  document.getElementById('btnLogout').classList.remove('hidden');
+  // Xử lý đăng nhập
+  document.getElementById('btnLogin').addEventListener('click', async () => {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value;
+    const d = (document.getElementById('loginDept')?.value || '').trim();
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = 'Đang đăng nhập...';
+    msg.className = 'note';
 
-  // Nạp ECN SAU KHI có token (cache-busting để chắc chắn reload)
-  const f = document.getElementById('appFrame');
-  f.classList.remove('hidden');
-  f.src = 'ecn.html?ts=' + Date.now();   // ép reload sau login
-}
+    try{
+      const res = await auth.login(u, p, d || null);
+      if (res && res.user){
+        // Đăng nhập xong -> chuyển sang ecn.html (cache-busting đảm bảo nạp mới)
+        window.location.replace('ecn.html?ts=' + Date.now());
+      } else {
+        throw new Error('Sai thông tin đăng nhập');
+      }
+    }catch(e){
+      msg.textContent = 'Đăng nhập thất bại: ' + (e.message || 'Lỗi máy chủ');
+      msg.className = 'note err';
+    }
+  });
+
+  // Nút Đăng xuất (nếu có trên header)
+  const btnLogout = document.getElementById('btnLogout');
+  if (btnLogout){
+    btnLogout.addEventListener('click', () => { auth.logout(); location.reload(); });
+  }
 </script>
 </body>
 </html>
